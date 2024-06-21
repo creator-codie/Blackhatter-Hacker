@@ -1,0 +1,117 @@
+Step,Description
+Reconnaissance,"Gather data from public sources, scan for open ports, and use social engineering to collect information."
+Reconnaissance,Perform passive reconnaissance by monitoring social media and active reconnaissance using Nmap.
+Reconnaissance,"Gather intel via social engineering, analyze network maps, and identify key targets."
+Reconnaissance,Use WHOIS lookup and DNS enumeration to collect domain and IP information.
+Vulnerability Analysis,"Analyze scanning results to find security holes, run vulnerability assessments, and plan phishing attacks."
+Vulnerability Analysis,"Identify software vulnerabilities, weak passwords, and plan targeted attacks based on findings."
+Vulnerability Analysis,"Conduct detailed vulnerability scanning, evaluate patch levels, and simulate attack scenarios."
+Vulnerability Analysis,"Review software versions and configurations, looking for known security issues."
+Exploitation,"Exploit identified vulnerabilities to gain access, use phishing emails to trick users."
+Exploitation,"Deploy exploits and malware, bypass security measures, and gain unauthorized access."
+Exploitation,Use buffer overflow and SQL injection techniques to compromise systems.
+Exploitation,Deploy zero-day exploits to bypass defenses and gain unauthorized access.
+Gaining Access,"Install keyloggers, backdoors, and capture network traffic to collect credentials."
+Gaining Access,"Use compromised credentials to access systems, escalate privileges to gain deeper access."
+Gaining Access,Use phishing and malware to harvest credentials and establish initial foothold.
+Gaining Access,Deploy network sniffers to intercept and analyze traffic for sensitive information.
+Privilege Escalation,Exploit misconfigurations and escalate privileges using known vulnerabilities.
+Privilege Escalation,Elevate access by exploiting software flaws or weak permissions.
+Privilege Escalation,Exploit privilege escalation vulnerabilities to gain higher access within compromised systems.
+Privilege Escalation,"Use local exploits to elevate privileges, gaining administrative control over the network."
+Data Exfiltration,"Extract sensitive data using encrypted channels, hide activities to avoid detection."
+Data Exfiltration,"Transfer data covertly, using encrypted tunnels or steganography to avoid detection."
+Data Exfiltration,Use data compression and encryption to stealthily transfer large volumes of data.
+Data Exfiltration,Implement data exfiltration through covert channels like DNS tunneling and steganography.
+Maintaining Persistence,"Set up persistent backdoors, schedule tasks to regain access, and cover tracks."
+Maintaining Persistence,Ensure continuous access by installing rootkits and hiding traces of the intrusion.
+Maintaining Persistence,"Install persistent malware, establish command-and-control channels, and cover tracks effectively."
+Maintaining Persistence,"Use automated scripts to maintain access, adjust to security updates, and ensure persistent access."
+Evading Detection,"Use stealth techniques, monitor security responses, and adapt strategies to stay undetected."
+Evading Detection,"Employ methods like proxy chains, VPNs, and encryption to avoid detection and analysis."
+Evading Detection,"Utilize advanced obfuscation techniques, monitor security responses, and adjust tactics dynamically."
+Evading Detection,Implement stealth techniques like fileless malware and rootkits to avoid detection.
+Reconnaissance,Use Google dorking to find sensitive information exposed online and gather initial intelligence.
+Reconnaissance,Monitor forums and social media for leaks or discussions about the target to collect insider information.
+Reconnaissance,Perform active reconnaissance by scanning the target’s IP range and discovering live hosts.
+Reconnaissance,Analyze job postings to understand the target’s technology stack and potential vulnerabilities.
+Reconnaissance,Review the target’s website for hidden directories or exposed configuration files using web crawling tools.
+Vulnerability Analysis,Perform a comprehensive vulnerability scan to identify weak spots in the target’s network security.
+Vulnerability Analysis,Cross-reference found vulnerabilities with known exploits to plan the next steps of the attack.
+Vulnerability Analysis,Analyze user roles and permissions to identify misconfigurations and potential attack vectors.
+Vulnerability Analysis,Use OpenVAS and Nessus to conduct thorough vulnerability assessments and prepare for exploitation.
+Vulnerability Analysis,Review the target’s public repositories for exposed credentials and configuration files.
+Exploitation,Develop custom exploits based on the specific vulnerabilities found during the scanning phase.
+Exploitation,Use phishing campaigns to trick employees into installing malware or revealing sensitive information.
+Exploitation,Exploit server-side vulnerabilities to gain initial access and establish a foothold in the network.
+Exploitation,Craft payloads to exploit client-side vulnerabilities and gain control over user systems.
+Exploitation,Leverage social engineering techniques to bypass security measures and gain access to sensitive areas.
+Gaining Access,Use compromised credentials to infiltrate deeper into the network and gather more data for lateral movement.
+Gaining Access,Deploy malware on target systems to harvest data and establish persistent access for future operations.
+Gaining Access,Use network sniffers to capture unencrypted data and analyze traffic patterns for further exploitation.
+Gaining Access,Explore compromised systems to find additional points of entry and expand control over the network.
+Gaining Access,Utilize harvested credentials to access privileged accounts and escalate the attack further.
+Privilege Escalation,Exploit software bugs to gain administrative rights and control over critical systems.
+Privilege Escalation,Leverage system misconfigurations to escalate privileges and gain root or administrator access.
+Privilege Escalation,Use privilege escalation exploits to move from a standard user account to an administrator account.
+Privilege Escalation,Identify weak configurations and exploit them to gain elevated access in the target’s systems.
+Privilege Escalation,Craft custom scripts to escalate privileges and maintain control over compromised systems.
+Data Exfiltration,Exfiltrate sensitive data using encrypted channels and hide the transmission to avoid detection.
+Data Exfiltration,Compress and encrypt data before exfiltration to reduce the risk of detection and interception.
+Data Exfiltration,Use steganography to hide exfiltrated data within ordinary files and evade security mechanisms.
+Data Exfiltration,Employ DNS tunneling techniques to covertly exfiltrate data from the target’s network.
+Data Exfiltration,Transfer exfiltrated data to secure locations while avoiding network monitoring systems.
+Maintaining Persistence,Install persistent backdoors to ensure continuous access even if initial vulnerabilities are patched.
+Maintaining Persistence,Set up automated scripts to re-establish access after a system reboot or security update.
+Maintaining Persistence,Use rootkits to maintain a hidden presence on compromised systems and avoid detection.
+Maintaining Persistence,Establish command-and-control channels to remotely manage compromised systems without raising alarms.
+Maintaining Persistence,Deploy hidden services to ensure ongoing access and control over compromised networks.
+Evading Detection,Use encryption and anonymization techniques to hide communication with command servers.
+Evading Detection,Employ advanced obfuscation techniques to avoid detection by intrusion detection systems.
+Evading Detection,Monitor security patches and adjust strategies to maintain access despite updates and changes.
+Evading Detection,Utilize fileless malware to execute code without leaving traditional footprints on the system.
+Evading Detection,Adapt tactics dynamically based on observed security responses and continue the attack without interruption.
+Reconnaissance,Use tools like Maltego to map out the digital footprint of the target.
+Reconnaissance,Conduct exhaustive DNS analysis and look for subdomains and related services.
+Vulnerability Analysis,Run OWASP ZAP to perform dynamic analysis and identify application vulnerabilities.
+Vulnerability Analysis,Check for outdated software and unpatched systems to find potential entry points.
+Exploitation,Deploy a phishing campaign specifically targeting C-level executives to gain sensitive information.
+Exploitation,Use spear-phishing tactics to tailor attacks and increase success rates.
+Gaining Access,Deploy hidden keyloggers to capture and exfiltrate user credentials without detection.
+Gaining Access,Use ARP poisoning to intercept and manipulate traffic within the local network.
+Privilege Escalation,Exploit weak permissions to elevate access levels and control more critical systems.
+Privilege Escalation,Use privilege escalation exploits to gain control over systems running outdated software.
+Data Exfiltration,Utilize hidden encryption techniques to exfiltrate data while avoiding detection.
+Data Exfiltration,Use custom scripts to automate the exfiltration of large datasets through encrypted channels.
+Maintaining Persistence,Install persistent malware that can survive reboots and updates.
+Maintaining Persistence,Establish backdoors and ensure they can be reactivated if removed.
+Evading Detection,Use encrypted tunnels to avoid detection by network security monitoring tools.
+Evading Detection,Adapt attack strategies based on real-time feedback from intrusion detection systems.
+Reconnaissance,Use advanced network scanning tools to identify potential entry points and gather intel.
+Reconnaissance,Analyze corporate structure and key personnel to plan targeted attacks.
+Vulnerability Analysis,Conduct comprehensive security assessments to uncover vulnerabilities in system configurations.
+Vulnerability Analysis,Identify and exploit software vulnerabilities in third-party applications used by the target.
+Exploitation,Use targeted malware to exploit known vulnerabilities and gain unauthorized access.
+Exploitation,Develop and deploy custom exploits tailored to the target’s network environment.
+Gaining Access,Implement advanced keylogging techniques to capture sensitive data from target systems.
+Gaining Access,Leverage network protocol analysis to intercept and manipulate network traffic for gaining access.
+Privilege Escalation,Utilize known privilege escalation exploits to gain higher access and control over critical systems.
+Privilege Escalation,Explore and exploit system misconfigurations to escalate privileges effectively.
+Data Exfiltration,Employ sophisticated data exfiltration methods to transfer large volumes of data without detection.
+Data Exfiltration,Automate data exfiltration processes to ensure continuous and covert data transfer.
+Maintaining Persistence,Establish highly persistent access mechanisms to ensure long-term control over compromised systems.
+Maintaining Persistence,Deploy automated scripts for re-establishing access after security measures are applied.
+Evading Detection,Use stealth and evasion techniques to bypass intrusion detection systems effectively.
+Evading Detection,Adapt attack strategies dynamically based on real-time analysis of security defenses.
+Maintaining Persistence,"Use advanced techniques to maintain long-term access, such as hidden backdoors and disguised malware."
+Maintaining Persistence,Deploy advanced rootkits to ensure persistent and undetectable access to compromised systems.
+Vulnerability Analysis,Conduct in-depth security analysis to uncover hidden vulnerabilities within complex software stacks.
+Vulnerability Analysis,Employ sophisticated vulnerability assessments to identify security weaknesses in interconnected systems.
+Reconnaissance,Utilize modern reconnaissance tools to gather extensive intelligence on network configurations and assets.
+Reconnaissance,Analyze user behaviors and patterns to identify potential entry points and vulnerabilities.
+Evading Detection,Implement evasive tactics to avoid detection by advanced security systems and monitoring tools.
+Evading Detection,Employ anti-detection measures to bypass security mechanisms and maintain stealth operations.
+Reconnaissance,Utilize automated tools to perform continuous network scanning and asset discovery.
+Reconnaissance,Employ social engineering tactics to gather critical information from employees.
+Data Exfiltration,Use encrypted tunnels and advanced methods to exfiltrate data without detection.
+Data Exfiltration,Deploy hidden channels to exfiltrate data while mimicking normal traffic patterns.

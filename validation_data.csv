@@ -1,0 +1,25 @@
+Description,Step
+Use custom scripts to automate the exfiltration of large datasets through encrypted channels.,Data Exfiltration
+"Analyze scanning results to find security holes, run vulnerability assessments, and plan phishing attacks.",Vulnerability Analysis
+Develop custom exploits based on the specific vulnerabilities found during the scanning phase.,Exploitation
+Use OpenVAS and Nessus to conduct thorough vulnerability assessments and prepare for exploitation.,Vulnerability Analysis
+Use buffer overflow and SQL injection techniques to compromise systems.,Exploitation
+Use compromised credentials to infiltrate deeper into the network and gather more data for lateral movement.,Gaining Access
+Implement evasive tactics to avoid detection by advanced security systems and monitoring tools.,Evading Detection
+Review the target’s website for hidden directories or exposed configuration files using web crawling tools.,Reconnaissance
+Utilize fileless malware to execute code without leaving traditional footprints on the system.,Evading Detection
+Deploy zero-day exploits to bypass defenses and gain unauthorized access.,Exploitation
+Craft payloads to exploit client-side vulnerabilities and gain control over user systems.,Exploitation
+"Install persistent malware, establish command-and-control channels, and cover tracks effectively.",Maintaining Persistence
+Implement advanced keylogging techniques to capture sensitive data from target systems.,Gaining Access
+Leverage system misconfigurations to escalate privileges and gain root or administrator access.,Privilege Escalation
+Exploit privilege escalation vulnerabilities to gain higher access within compromised systems.,Privilege Escalation
+"Gather data from public sources, scan for open ports, and use social engineering to collect information.",Reconnaissance
+Craft custom scripts to escalate privileges and maintain control over compromised systems.,Privilege Escalation
+Establish backdoors and ensure they can be reactivated if removed.,Maintaining Persistence
+Analyze user behaviors and patterns to identify potential entry points and vulnerabilities.,Reconnaissance
+Establish highly persistent access mechanisms to ensure long-term control over compromised systems.,Maintaining Persistence
+Develop and deploy custom exploits tailored to the target’s network environment.,Exploitation
+Use advanced network scanning tools to identify potential entry points and gather intel.,Reconnaissance
+Use encryption and anonymization techniques to hide communication with command servers.,Evading Detection
+"Install keyloggers, backdoors, and capture network traffic to collect credentials.",Gaining Access
