@@ -1,159 +1,267 @@
-name: Self-Evolving Workflow with Self-Healing
-
+---
+Name: Self-Evolving Workflow with Self-Healing
 on:
   push:
     branches:
       - main
-
 permissions:
   contents: write
-
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-
+          python-version: 3.x
       - name: Install Dependencies
-        run: pip install -r requirements.txt 
-
+        run: pip install -r requirements.txt
       - name: Run tests and capture logs
         run: |
           pytest --junitxml=report.xml | tee log_file.txt
-
   collect_metrics:
     runs-on: ubuntu-latest
     needs: build_and_test
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.build_and_test.result == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' &&
+      needs.build_and_test.result == 'success' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-      - name: Install Dependencies  
+          python-version: 3.x
+      - name: Install Dependencies
         run: pip install -r requirements.txt
       - name: Gather Test Coverage
         run: |
           coverage run -m pytest
           coverage report -m
           coverage xml -o code-coverage.xml 
+      - name: Gather Test Results
+        run: >
+          echo "tests_passed=$(python -c 'import xml.etree.ElementTree as ET; tree =
+          ET.parse(\"report.xml\"); root = tree.getroot(); print(len([testcase
+          for testcase in root.iter(\"testcase\") if testcase.attrib[\"status\"]
+          == \"passed\"]))')" >> $GITHUB_ENV
 
+          echo "tests_failed=$(python -c 'import xml.etree.ElementTree as ET; tree = ET.parse(\"report.xml\"); root = tree.getroot(); print(len([testcase for testcase in root.iter(\"testcase\") if testcase.attrib[\"status\"] == \"failed\"]))')" >> $GITHUB_ENV
       - name: Gather Build Time Metrics
-        run: |
-          echo "build_time=$(python -c 'import xml.etree.ElementTree as ET; tree = ET.parse(\"report.xml\"); root = tree.getroot(); print(sum(float(testcase.attrib[\"time\"]) for testcase in root.iter(\"testcase\")))' )" >> $GITHUB_ENV
+        run: >
+          echo "build_time=$(python -c 'import xml.etree.ElementTree as ET; tree =
+          ET.parse(\"report.xml\"); root = tree.getroot();
+          print(sum(float(testcase.attrib[\"time\"]) for testcase in
+          root.iter(\"testcase\")))' )" >> $GITHUB_ENV  
+      - name: Gather Code Complexity Metrics
+        run: >
+          pip install radon
 
+          radon cc . -s -j > code-complexity.json
+
+          echo "cyclomatic_complexity=$(python -c 'import json; with open(\"code-complexity.json\", \"r\") as f: print(sum(item[\"complexity\"] for item in json.load(f)))')" >> $GITHUB_ENV
+
+          echo "maintainability_index=$(python -c 'import json; with open(\"code-complexity.json\", \"r\") as f: print(sum(item[\"mi\"] for item in json.load(f)) / len(json.load(f)))')" >> $GITHUB_ENV
   analyze_and_decide:
     runs-on: ubuntu-latest
     needs: collect_metrics
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.collect_metrics.result == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' &&
+      needs.collect_metrics.result == 'success' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Install Dependencies (if needed)
         if: hashFiles('requirements.txt') != ''
         run: pip install -r requirements.txt
-
       - name: Analyze Metrics
         id: analyze_metrics
-        run: |
-          python -c '
-          import xml.etree.ElementTree as ET
+        run: >
+          import json
+
           import os
 
+          import xml.etree.ElementTree as ET
+
+
+          # Load metrics data 
+
           tree = ET.parse("code-coverage.xml")
+
           root = tree.getroot()
+
           percent_covered = float(root.attrib["line-rate"]) * 100
 
-          threshold = ${{ env.TEST_COVERAGE_THRESHOLD }} 
+          tests_failed = int(os.environ["tests_failed"])
 
-          should_update = percent_covered < threshold
+          build_time = float(os.environ["build_time"])
 
-          update_details = f"Test coverage is below {threshold}% - consider adding more tests." if should_update else "Test coverage meets the required threshold."
+          with open("code-complexity.json", "r") as f:
+            complexity_data = json.load(f)
+          total_complexity = sum(item["complexity"] for item in complexity_data)
+
+          avg_maintainability = sum(item["mi"] for item in complexity_data) / len(complexity_data)
+
+
+          # Customize thresholds
+
+          threshold_coverage = ${{ env.TEST_COVERAGE_THRESHOLD }}
+
+          threshold_complexity = ${{ env.CYCLOMATIC_COMPLEXITY_THRESHOLD }} 
+
+          threshold_maintainability = ${{ env.MAINTAINABILITY_INDEX_THRESHOLD }}
+
+
+          should_update = (
+              percent_covered < threshold_coverage or
+              tests_failed > 0 or 
+              build_time > 600 or  
+              total_complexity > 500 or
+              avg_maintainability < 60
+          )
+
+
+          update_details = (
+              "Test coverage or other metrics are below threshold. "
+              f"Coverage: {percent_covered:.2f}% (threshold: {threshold_coverage}%), "
+              f"Failed Tests: {tests_failed}, "
+              f"Build Time: {build_time:.2f}s, "
+              f"Complexity: {total_complexity}, "
+              f"Maintainability Index: {avg_maintainability:.2f}"
+          )
 
           with open(os.environ["GITHUB_ENV"], "a") as fh:
               fh.write(f"should_update={str(should_update).lower()}\n")
               if should_update:
                   fh.write(f"update_details={update_details}\n")
-          '
-
       - name: Create Pull Request with Workflow Changes
         if: steps.analyze_metrics.outputs.should_update == 'true'
         uses: peter-evans/create-pull-request@v4
         with:
-          title: "Proposed Workflow Improvements"
+          title: Proposed Workflow Improvements
           body: ${{ steps.analyze_metrics.outputs.update_details }}
           branch: proposed-workflow-changes
-          commit-message: "Update workflow based on analysis"
+          commit-message: Update workflow based on analysis
           path: .github/workflows/evolving_with_self_healing.yml
           labels: workflow-update
-
   self_heal:
     runs-on: ubuntu-latest
-    needs: [build_and_test, collect_metrics, analyze_and_decide]
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && (needs.build_and_test.result == 'failure' || needs.collect_metrics.result == 'failure') }}
+    needs:
+      - build_and_test
+      - collect_metrics
+      - analyze_and_decide
+    if: ${{ github.event.workflow_run.conclusion == 'failure' &&
+      (needs.build_and_test.result == 'failure' || needs.collect_metrics.result
+      == 'failure') }}
     steps:
       - uses: actions/checkout@v3
-
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: 3.x
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+      - name: Analyze Failure and Recover (ENHANCED)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          import json
 
-      - name: Install Dependencies  
-        run: pip install -r requirements.txt 
-
-      - name: Analyze Failure and Recover
-        id: analyze_failure_and_recover
-        run: |
-          # Analyze the failure by parsing logs
           import os
+
           import re
-          
-          retryable = False
-          cause = ""
-          
-          log_file = os.path.join(os.environ['GITHUB_WORKSPACE'], 'log_file.txt')
-          
-          with open(log_file, 'r') as f:
-              logs = f.readlines()
-          
+
+          import requests
+
+          import xml.etree.ElementTree as ET
+
+
+          # Load metrics data 
+
+          with open("code-complexity.json", "r") as f:
+            complexity_data = json.load(f)
+          total_complexity = sum(item["complexity"] for item in complexity_data)
+
+          avg_maintainability = sum(item["mi"] for item in complexity_data) / len(complexity_data)
+
+
+          tree = ET.parse("code-coverage.xml")
+
+          root = tree.getroot()
+
+          percent_covered = float(root.attrib["line-rate"]) * 100
+
+          tests_failed = int(os.environ["tests_failed"])  # Get from previous job's output
+
+
+          # Analyze Logs and Identify Failure Cause
+
+          with open("log_file.txt", "r") as f:
+            log_content = f.read()
+
           error_patterns = {
-              'failed_test': r"AssertionError",
-              'bad_commit': r"SyntaxError",
-              'network_issue': r"ConnectionError"
+            "AssertionError": "Failed Test",
+            "ModuleNotFoundError": "Missing Dependency",
+            "TimeoutError": "Timeout"
           }
-          
-          for line in logs:
-              for error_type, pattern in error_patterns.items():
-                  if re.search(pattern, line):
-                      if error_type == 'network_issue':
-                          retryable = True
-                      else:
-                          cause = error_type
-                      break
-              if cause or retryable:
-                  break
-          
-          with open(os.environ['GITHUB_ENV'], 'a') as fh:
-              fh.write(f'retryable={str(retryable).lower()}\n')
-              fh.write(f'cause={cause}\n')
 
-      - name: Retry Failed Job
-        if: ${{ steps.analyze_failure_and_recover.outputs.retryable == 'true' }}
-        uses: nick-invision/retry@v2
-        with:
-          max_attempts: 3
-          timeout-minutes: 10
 
-      - name: Rollback Commit
-        if: ${{ steps.analyze_failure_and_recover.outputs.cause == 'bad_commit' }}
-        run: |
-          git revert HEAD~1 
-          git push origin main
+          matched_error = None
 
+          for pattern, description in error_patterns.items():
+            if re.search(pattern, log_content):
+              matched_error = description
+              break
+
+          # Determine Recovery Action
+
+          recovery_action = None
+
+          recovery_details = ""
+
+
+          if matched_error == "Failed Test":
+            if percent_covered < 80:
+              recovery_action = "Suggest increasing test coverage."
+            else:
+              recovery_action = "Suggest reviewing failed test cases and fixing the underlying issues."
+              recovery_details = f"Number of failed tests: {tests_failed}"
+          elif matched_error == "Missing Dependency":
+            # Get the name of the missing module from the log file.
+            try:
+              dependency_name = re.search(r"No module named '(\w+)'", log_content).group(1)
+            except AttributeError:
+              dependency_name = "Unknown module"
+
+            recovery_action = f"Suggest installing missing dependency: {dependency_name}"
+
+          elif matched_error == "Timeout":
+            recovery_action = "Suggest optimizing slow parts of the build."
+            # Analyze the build time for each test case using the JUnit XML report
+            test_times = {}
+            for testcase in root.iter("testcase"):
+                test_times[testcase.attrib["name"]] = float(testcase.attrib["time"])
+            slowest_tests = sorted(test_times, key=test_times.get, reverse=True)[:5]  # Get the 5 slowest tests
+            recovery_details = f"Slowest tests: {', '.join(slowest_tests)}"
+
+          elif total_complexity > 500 or avg_maintainability < 60:
+            recovery_action = "Suggest refactoring complex code to improve maintainability."
+            if total_complexity > 500:
+                recovery_details += f"Total cyclomatic complexity: {total_complexity} (threshold: 500)\n"
+            if avg_maintainability < 60:
+                recovery_details += f"Average maintainability index: {avg_maintainability:.2f} (threshold: 60)\n"
+
+            # Optionally, identify the most complex files or functions here using the 'code-complexity.json' data
+            # ... (Add logic to extract complex files from the JSON data)
+
+          # Create Issue on GitHub
+
+          if recovery_action:
+            repo_owner = os.environ["GITHUB_REPOSITORY"].split("/")[0]
+            repo_name = os.environ["GITHUB_REPOSITORY"].split("/")[1]
+            issue_title = f"Workflow Failure: {matched_error}"
+            issue_body = f"The workflow failed due to {matched_error}. {recovery_action}\n\n{recovery_details}"
+            headers = {
+              "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
+              "Accept": "application/vnd.github.v3+json"
+            }
+            url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues"
+            data = {"title": issue_title, "body": issue_body}
+            requests.post(url, headers=headers, json=data)
