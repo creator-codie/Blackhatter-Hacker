@@ -1,4 +1,3 @@
----
 Name: Self-Evolving Workflow with Self-Healing
 on:
   push:
