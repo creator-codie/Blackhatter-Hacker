@@ -1,0 +1,140 @@
+name: Self-Evolving Workflow with Self-Healing
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write   
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Extract Dependencies
+        run: |
+          python -c "import sys; print(' '.join(set(x for x in sys.modules if hasattr(sys.modules[x], '__file__') and 'site-packages' in sys.modules[x].__file__)))" > requirements.txt
+      - name: Install Dependencies
+        if: hashFiles('requirements.txt') != ''
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest
+
+  collect_metrics:
+    runs-on: ubuntu-latest
+    needs: build_and_test
+    steps:
+      - name: Gather Test Coverage
+        run: |
+          coverage run -m pytest
+          coverage report -m
+          coverage json -o code-coverage.json 
+
+      - name: Gather Build Time Metrics
+        run: echo "build_time=$(python -c 'import json; with open(\"code-coverage.json\", \"r\") as f: print(json.load(f)[\"totals\"][\"duration\"])')" >> $GITHUB_OUTPUT
+  
+  analyze_and_decide:
+    runs-on: ubuntu-latest
+    needs: collect_metrics
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Dependencies (if needed)
+        if: hashFiles('requirements.txt') != ''
+        run: pip install -r requirements.txt
+
+      - name: Analyze Metrics
+        run: |
+          python -c """
+          import json
+          import os
+
+          with open("code-coverage.json", "r") as f:
+              metrics_data = json.load(f)
+
+          threshold = 80 # Example threshold
+
+          should_update = metrics_data["totals"]["percent_covered"] < threshold
+          update_details = f"Test coverage is below {threshold}% - add more tests" if should_update else ""
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'should_update={str(should_update).lower()}', file=fh)
+              if should_update:
+                  print(f'update_details={update_details}', file=fh)
+          """
+        
+      - name: Create Pull Request with Workflow Changes
+        if: ${{ steps.analyze_metrics.outputs.should_update == 'true' }}
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: "Proposed Workflow Improvements"
+          body: ${{ steps.analyze_metrics.outputs.update_details }}
+          branch: proposed-workflow-changes
+          commit-message: "Update workflow based on analysis"
+          path: .github/workflows/evolving_with_self_healing.yml
+          labels: workflow-update
+      
+
+  self_heal:
+    if: failure()
+    runs-on: ubuntu-latest
+    needs: [build_and_test, collect_metrics, analyze_and_decide]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Extract Dependencies
+        run: |
+          python -c "import sys; print(' '.join(set(x for x in sys.modules if hasattr(sys.modules[x], '__file__') and 'site-packages' in sys.modules[x].__file__)))" > requirements.txt 
+      - name: Install Dependencies (if needed)
+        if: hashFiles('requirements.txt') != ''
+        run: pip install -r requirements.txt
+      - name: Analyze Failure and Recover
+        run: |
+          # Analyze the failure by parsing logs
+          # ... (Add logic to extract relevant information from logs)
+          
+          python -c """
+          import os
+          import re
+          import sys
+          
+          retryable = False
+          cause = ""
+          
+          error_pattern = r"ERROR: (.*)" # Example error pattern to search
+          
+          for line in sys.stdin.readlines():  # Read from the piped input
+              match = re.search(error_pattern, line)
+              if match:
+                  error_message = match.group(1)
+                  if "AssertionError" in error_message:
+                      cause = "failed_test"
+                      break
+                  elif "ConnectionError" in error_message:
+                      retryable = True
+                      break
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'retryable={str(retryable).lower()}', file=fh)
+              print(f'cause={cause}', file=fh)
+          """ < "${{ github.workspace }}/evolving_with_self_healing.yml" # Pass log as input
+
+      - name: Retry Failed Job
+        if: ${{ steps.analyze_failure_and_recover.outputs.retryable == 'true' }}
+        uses: nick-invision/retry@v2
+        with:
+          max_attempts: 3
+          timeout_minutes: 10
+
+      - name: Rollback Commit
+        if: ${{ steps.analyze_failure_and_recover.outputs.cause == 'bad_commit' }}
+        run: |
+          git revert HEAD~1 
+          git push origin main
